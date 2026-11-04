@@ -7,6 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Four">
   <link rel="manifest" href="manifest.webmanifest">
+  <script>
+    // Apply the saved theme before first paint (no flash). Without a saved choice, the phone's setting wins.
+    try { var t = localStorage.getItem('four-theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <title>Four</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -16,6 +20,7 @@
 
   <!-- HOME -->
   <section id="home" class="screen hidden">
+    <button id="homeTheme" class="icon themeBtn" aria-label="Switch light or dark mode"></button>
     <h1 class="logo"><img src="logo.svg" alt="Four"></h1>
     <p class="tagline">Match colors, shapes and numbers. Play online with friends.</p>
     <svg class="shapes" viewBox="0 0 168 36" aria-hidden="true">
@@ -55,6 +60,7 @@
 
   <!-- LOBBY -->
   <section id="lobby" class="screen hidden">
+    <button id="lobbyTheme" class="icon themeBtn" aria-label="Switch light or dark mode"></button>
     <h2>Room</h2>
     <div id="lcode" class="bigcode"></div>
     <div class="panel">
@@ -84,6 +90,7 @@
   <section id="game" class="hidden">
     <header id="topbar">
       <div id="scoreboard"></div>
+      <button id="gameTheme" class="icon themeBtn" aria-label="Switch light or dark mode"></button>
       <button id="helpBtn" class="icon" aria-label="Rules">?</button>
     </header>
     <div id="status"><b id="turnText"></b><span id="lastEvent"></span></div>

@@ -17,7 +17,7 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 - `test/core.test.js`, `test/bot.test.js`, `test/online.test.js`.
 
 ## Look & feel
-Bauhaus: warm paper background (`--paper #efece6`), ink-navy text, flat primary colors (navy `#20476f`, red `#e8445a`, yellow `#f5c84f`, green `#6dbf50`), pill/rounded shapes, bold rounded sans. Card shape colors live in `FILL`/`DARK` in `app.js`. The F-o-U-R logo is the user's own design, redrawn as vector in `logo.svg`; if you change it, re-render the PNG icons from `icon.svg`.
+Bauhaus: warm paper background (`--paper #efece6`), ink-navy text, flat primary colors (navy `#20476f`, red `#e8445a`, yellow `#f5c84f`, green `#6dbf50`), pill/rounded shapes, bold rounded sans. Card shape colors live in `FILL`/`DARK` in `app.js`. Dark mode: all colors are CSS variables on `:root`; the dark set applies under `prefers-color-scheme: dark` unless `html[data-theme="light"]`, or always with `data-theme="dark"`. A ☾/☀ button (`.themeBtn`, saved as `four-theme` in localStorage, applied by an inline script in `<head>` before first paint) overrides the system setting. In dark mode the logo sits on a paper tile so the navy F stays visible; cards keep their cream faces. The F-o-U-R logo is the user's own design, redrawn as vector in `logo.svg`; if you change it, re-render the PNG icons from `icon.svg`.
 
 ## Protocol
 - `POST /api/create {name}` and `POST /api/join {code,name}` return `{ok, code, token}`.

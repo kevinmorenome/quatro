@@ -549,6 +549,24 @@
     }
   });
 
+  // ---------- Theme (light / dark) ----------
+  const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  const currentTheme = () => document.documentElement.getAttribute('data-theme') || (darkQuery && darkQuery.matches ? 'dark' : 'light');
+  function paintTheme() {
+    const dark = currentTheme() === 'dark';
+    document.querySelectorAll('.themeBtn').forEach((b) => { b.textContent = dark ? '☀' : '☾'; b.title = dark ? 'Switch to light mode' : 'Switch to dark mode'; });
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#111b28' : '#efece6');
+  }
+  document.querySelectorAll('.themeBtn').forEach((b) => b.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('four-theme', next); } catch (e) { /* ignore */ }
+    paintTheme();
+  }));
+  if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener('change', paintTheme);
+  paintTheme();
+
   // ---------- Board zoom (pinch, +/- buttons, fit) ----------
   const ZOOM_MIN = 0.3, ZOOM_MAX = 2;
   S.zoom = 1;
