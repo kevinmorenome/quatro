@@ -1,6 +1,6 @@
-# Iota Online — project notes for Claude Code
+# Four — project notes for Claude Code
 
-Online multiplayer version of the card game **Iota** (2–4 players, room codes, real time).
+Online multiplayer version of the card game **Four** (2–4 players, room codes, real time).
 Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 
 ## Run

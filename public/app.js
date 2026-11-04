@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const Core = window.IotaCore;
+  const Core = window.FourCore;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -86,7 +86,7 @@
 
   function saveSession(s) {
     S.session = s;
-    try { localStorage.setItem('iota-session', JSON.stringify(s)); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('four-session', JSON.stringify(s)); } catch (e) { /* ignore */ }
   }
 
   function resetTurnUI() {
@@ -102,9 +102,9 @@
     S.session = null;
     S.st = null;
     resetTurnUI();
-    try { localStorage.removeItem('iota-session'); } catch (e) { /* ignore */ }
+    try { localStorage.removeItem('four-session'); } catch (e) { /* ignore */ }
     history.replaceState(null, '', location.pathname);
-    document.title = 'Iota';
+    document.title = 'Four';
     banner(false);
     show('home');
     $('herr').textContent = msg || '';
@@ -162,7 +162,7 @@
       resetTurnUI();
       show('lobby');
       renderLobby();
-      document.title = 'Iota';
+      document.title = 'Four';
       return;
     }
     const wasLobby = !prev || prev.phase === 'lobby';
@@ -175,7 +175,7 @@
     for (const id of [...S.tradeSel]) if (!handIds.has(id)) S.tradeSel.delete(id);
     if (wasLobby) S.needCenter = true;
     renderGame();
-    document.title = myTurn(st) ? '▶ Your turn · Iota' : 'Iota';
+    document.title = myTurn(st) ? '▶ Your turn · Four' : 'Four';
 
     const sig = st.lastPlay ? JSON.stringify(st.lastPlay) : '';
     if (sig && sig !== S.lastPlaySig && !wasLobby) {
@@ -485,7 +485,7 @@
 
   $('hintBox').addEventListener('change', (e) => {
     S.hints = e.target.checked;
-    try { localStorage.setItem('iota-hints', S.hints ? '1' : '0'); } catch (err) { /* ignore */ }
+    try { localStorage.setItem('four-hints', S.hints ? '1' : '0'); } catch (err) { /* ignore */ }
     if (S.st && S.st.phase !== 'lobby') renderGame();
   });
   $('helpBtn').addEventListener('click', openRules);
@@ -493,7 +493,7 @@
   $('lobbyRules').addEventListener('click', openRules);
 
   const playerName = () => $('name').value.trim();
-  $('name').addEventListener('input', () => { try { localStorage.setItem('iota-name', $('name').value); } catch (e) { /* ignore */ } });
+  $('name').addEventListener('input', () => { try { localStorage.setItem('four-name', $('name').value); } catch (e) { /* ignore */ } });
   $('createBtn').addEventListener('click', () => run(async () => enter(await api('/api/create', { name: playerName() }))));
   $('joinBtn').addEventListener('click', () => run(async () => {
     const code = $('code').value.trim().toUpperCase();
@@ -518,7 +518,7 @@
   $('copyBtn').addEventListener('click', async () => {
     const link = $('llink').value;
     if (navigator.share) {
-      try { await navigator.share({ title: 'Iota', text: 'Join my Iota game!', url: link }); return; } catch (e) { /* cancelled */ }
+      try { await navigator.share({ title: 'Four', text: 'Join my Four game!', url: link }); return; } catch (e) { /* cancelled */ }
     }
     try {
       await navigator.clipboard.writeText(link);
@@ -595,14 +595,14 @@
 
   // ---------- Boot ----------
   try {
-    $('name').value = localStorage.getItem('iota-name') || '';
-    S.hints = localStorage.getItem('iota-hints') !== '0';
+    $('name').value = localStorage.getItem('four-name') || '';
+    S.hints = localStorage.getItem('four-hints') !== '0';
   } catch (e) { /* ignore */ }
   $('hintBox').checked = S.hints;
 
   const urlRoom = (new URLSearchParams(location.search).get('room') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
   let saved = null;
-  try { saved = JSON.parse(localStorage.getItem('iota-session') || 'null'); } catch (e) { /* ignore */ }
+  try { saved = JSON.parse(localStorage.getItem('four-session') || 'null'); } catch (e) { /* ignore */ }
   if (saved && saved.code && saved.token && (!urlRoom || urlRoom === saved.code)) {
     S.session = saved;
     show('game');

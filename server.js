@@ -1,5 +1,5 @@
 'use strict';
-// Iota online server. No dependencies: static files + JSON API + Server-Sent Events.
+// Four online server. No dependencies: static files + JSON API + Server-Sent Events.
 //   POST /api/create {name}              -> {ok, code, token}
 //   POST /api/join   {code, name}        -> {ok, code, token}
 //   POST /api/act    {code, token, t, ...} actions: start, play, pass, recycle, skip, restart, leave
@@ -328,7 +328,7 @@ function start(port) {
 if (require.main === module) {
   const port = Number(process.env.PORT) || 3000;
   start(port).then(() => {
-    console.log('Iota is running:');
+    console.log('Four is running:');
     console.log('  http://localhost:' + port);
     for (const list of Object.values(os.networkInterfaces())) {
       for (const i of list || []) if (i.family === 'IPv4' && !i.internal) console.log('  http://' + i.address + ':' + port + '   (same Wi-Fi)');

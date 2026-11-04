@@ -23,7 +23,7 @@ const boardOf = (list) => {
   return b;
 };
 
-console.log('Iota core');
+console.log('Four core');
 
 test('deck has 66 cards: 64 unique + 2 wild', () => {
   const d = core.buildDeck();

@@ -1,7 +1,7 @@
 {
-  "name": "iota-online",
+  "name": "four-online",
   "version": "1.0.0",
-  "description": "Iota card game, playable online with friends via room codes. No dependencies.",
+  "description": "Four card game, playable online with friends via room codes. No dependencies.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

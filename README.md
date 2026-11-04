@@ -1,6 +1,6 @@
-# Iota Online
+# Four
 
-Play the card game Iota with friends in the browser. Create a room, share the 4-letter code or link, and play on separate devices. 2–4 players.
+Play the card game Four with friends in the browser. Create a room, share the 4-letter code or link, and play on separate devices. 2–4 players.
 
 ## Run it on your computer
 Needs Node 18 or newer. No `npm install` required.
