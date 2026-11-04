@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e2a24">
+  <title>Iota</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HOME -->
+  <section id="home" class="screen hidden">
+    <h1 class="logo">iota</h1>
+    <p class="tagline">The great big game in the teeny-weeny tin, online.</p>
+    <div class="panel">
+      <label for="name">Your name</label>
+      <input id="name" maxlength="16" autocomplete="nickname" placeholder="Name">
+      <button id="createBtn" class="btn primary">Create a room</button>
+      <div class="or"><span>or join a friend</span></div>
+      <div class="row">
+        <input id="code" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="CODE" class="code-input">
+        <button id="joinBtn" class="btn">Join</button>
+      </div>
+      <p id="herr" class="err"></p>
+    </div>
+    <button id="homeRules" class="link">How to play</button>
+  </section>
+
+  <!-- LOBBY -->
+  <section id="lobby" class="screen hidden">
+    <h2>Room</h2>
+    <div id="lcode" class="bigcode"></div>
+    <div class="panel">
+      <label>Invite link</label>
+      <div class="row">
+        <input id="llink" readonly>
+        <button id="copyBtn" class="btn">Copy</button>
+      </div>
+      <h3>Players <small>(2–4)</small></h3>
+      <ul id="lplayers" class="plist"></ul>
+      <p id="lwait" class="muted"></p>
+      <button id="startBtn" class="btn primary hidden">Start game</button>
+      <button id="leaveLobby" class="btn ghost">Leave room</button>
+    </div>
+    <button id="lobbyRules" class="link">How to play</button>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="hidden">
+    <header id="topbar">
+      <div id="scoreboard"></div>
+      <button id="helpBtn" class="icon" aria-label="Rules">?</button>
+    </header>
+    <div id="status"><b id="turnText"></b><span id="lastEvent"></span></div>
+    <div id="boardWrap"><div id="board"></div></div>
+    <footer id="tray">
+      <div id="msg"></div>
+      <div id="hand"></div>
+      <div id="actions"></div>
+      <div id="trayMeta">
+        <span id="pile"></span>
+        <label class="hint"><input type="checkbox" id="hintBox"> Hints</label>
+        <button id="leaveGame" class="link small">Leave</button>
+      </div>
+    </footer>
+  </section>
+
+  <div id="overlay" class="hidden"><div class="panel" id="overlayBody"></div></div>
+  <div id="banner" class="hidden">Reconnecting…</div>
+  <div id="toast" aria-live="polite"></div>
+
+  <dialog id="rules">
+    <h2>How to play Iota</h2>
+    <p><b>Goal:</b> score the most points by adding cards to lines connected to the grid.</p>
+    <p>Every card has a <b>color</b>, <b>shape</b> and <b>number</b>. A <b>line</b> is 2–4 cards in a straight row or column where, for each of color, shape and number, the cards are either <b>all the same</b> or <b>all different</b>.</p>
+    <p><b>Your turn:</b> either play 1–4 cards in a single row or column (at least one must touch the grid, no gaps), or pass and optionally trade some cards for new ones. You refill to 4 cards after playing.</p>
+    <p><b>Scoring:</b> add up the numbers of every line you created or extended. A card in two lines counts twice. A line of 4 (a <b>lot</b>) doubles the whole turn. Playing all 4 of your cards doubles again. The game ends when the draw pile is empty and someone plays their last card — that turn counts double too. Highest score wins.</p>
+    <p><b>Wild cards</b> count 0 and can stand for any card, but must stay the same card in every line they belong to. On your turn you can swap a wild on the board for a card from your hand that fits: select the card, then tap the wild.</p>
+    <p class="muted">House rule: if the pile is empty and everyone passes in a row, the game ends.</p>
+    <form method="dialog"><button class="btn primary">Got it</button></form>
+  </dialog>
+
+  <script src="game-core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

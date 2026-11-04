@@ -1,0 +1,11 @@
+{
+  "name": "iota-online",
+  "version": "1.0.0",
+  "description": "Iota card game, playable online with friends via room codes. No dependencies.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/core.test.js && node test/online.test.js"
+  },
+  "engines": { "node": ">=18" }
+}
