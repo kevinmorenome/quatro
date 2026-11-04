@@ -23,6 +23,21 @@
         <input id="code" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="CODE" class="code-input">
         <button id="joinBtn" class="btn">Join</button>
       </div>
+      <div class="or"><span>or play the computer</span></div>
+      <div class="row">
+        <select id="botCount" aria-label="Opponents">
+          <option value="0">Solo (alone)</option>
+          <option value="1" selected>1 computer</option>
+          <option value="2">2 computers</option>
+          <option value="3">3 computers</option>
+        </select>
+        <select id="botLevel" aria-label="Difficulty">
+          <option value="easy">Easy</option>
+          <option value="normal" selected>Normal</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <button id="soloBtn" class="btn">Play</button>
       <p id="herr" class="err"></p>
     </div>
     <button id="homeRules" class="link">How to play</button>
@@ -40,6 +55,14 @@
       </div>
       <h3>Players <small>(2–4)</small></h3>
       <ul id="lplayers" class="plist"></ul>
+      <div id="botAdd" class="row hidden">
+        <select id="lobbyLevel" aria-label="Computer difficulty">
+          <option value="easy">Easy</option>
+          <option value="normal" selected>Normal</option>
+          <option value="hard">Hard</option>
+        </select>
+        <button id="addBotBtn" class="btn">+ Add computer</button>
+      </div>
       <p id="lwait" class="muted"></p>
       <button id="startBtn" class="btn primary hidden">Start game</button>
       <button id="leaveLobby" class="btn ghost">Leave room</button>

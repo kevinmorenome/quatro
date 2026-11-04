@@ -182,6 +182,65 @@ function findSingleMove(view) {
   await turnStream.waitFor((s) => s.phase === 'lobby');
   step('host can send everyone back to the lobby');
 
+  // ---- Computer players ----
+  // Host adds / removes computer players in the lobby.
+  const h = (await post('/api/create', { name: 'Hana' })).body;
+  const sh = openStream(h.code, h.token);
+  await sh.waitFor((s) => s.phase === 'lobby');
+  assert.strictEqual((await post('/api/act', { code: h.code, token: h.token, t: 'start' })).body.ok, false, 'cannot start alone');
+  assert.ok((await post('/api/act', { code: h.code, token: h.token, t: 'addBot', level: 'hard' })).body.ok);
+  const lob = await sh.waitFor((s) => s.players.length === 2);
+  assert.ok(lob.players[1].bot && lob.players[1].connected && lob.players[1].level === 'hard');
+  assert.ok((await post('/api/act', { code: h.code, token: h.token, t: 'addBot' })).body.ok);
+  assert.ok((await post('/api/act', { code: h.code, token: h.token, t: 'addBot' })).body.ok);
+  assert.strictEqual((await post('/api/act', { code: h.code, token: h.token, t: 'addBot' })).body.ok, false, 'room is capped at 4');
+  assert.ok((await post('/api/act', { code: h.code, token: h.token, t: 'removeBot', index: 3 })).body.ok);
+  assert.strictEqual((await post('/api/act', { code: h.code, token: h.token, t: 'removeBot', index: 0 })).body.ok, false, 'cannot remove a human');
+  await sh.waitFor((s) => s.players.length === 3);
+  step('host can add and remove computer players (max 4 seats)');
+
+  // The computer takes its turns by itself, and only plays legal moves.
+  assert.ok((await post('/api/act', { code: h.code, token: h.token, t: 'start' })).body.ok);
+  let seenLog = -1; // log length when we last acted; the next turn of ours must come after more entries
+  let humanTurns = 0;
+  while (humanTurns < 3) {
+    const v = await sh.waitFor((s) => s.phase === 'playing' && s.turn === s.you && s.log.length > seenLog, 15000);
+    const mv = findSingleMove(v);
+    const r = mv
+      ? await post('/api/act', { code: h.code, token: h.token, t: 'play', placements: mv })
+      : await post('/api/act', { code: h.code, token: h.token, t: 'pass', tradeIds: [] });
+    assert.ok(r.body.ok, JSON.stringify(r.body));
+    humanTurns++;
+    await sh.waitFor((s) => s.log.length > v.log.length, 3000); // our move is in the log
+    seenLog = sh.latest.log.length; // bots will add at least one more entry before it is our turn again
+  }
+  const finalView = await sh.waitFor((s) => s.turn === s.you && s.log.length > seenLog, 15000);
+  assert.ok(finalView.log.some((e) => e.player !== 0), 'computer players acted on their own');
+  assert.ok(finalView.log.filter((e) => e.player !== 0).length >= 2 * humanTurns - 1, 'both computers took a turn after each of ours');
+  step('computer players take their own turns');
+
+  // One-click solo / vs-computer rooms.
+  const solo = (await post('/api/create', { name: 'Solo', bots: 0 })).body;
+  const ss = openStream(solo.code, solo.token);
+  const sv = await ss.waitFor((s) => s.phase === 'playing');
+  assert.strictEqual(sv.players.length, 1);
+  assert.strictEqual(sv.turn, 0);
+  const smove = findSingleMove(sv);
+  assert.ok((await post('/api/act', { code: solo.code, token: solo.token, t: 'play', placements: smove })).body.ok);
+  const sv2 = await ss.waitFor((s) => s.board.length === 2);
+  assert.strictEqual(sv2.turn, 0, 'in solo mode it is always your turn');
+  step('solo game (no opponents) starts at once and stays on your turn');
+
+  const vs = (await post('/api/create', { name: 'Vee', bots: 2, level: 'easy' })).body;
+  const sx = openStream(vs.code, vs.token);
+  const xv = await sx.waitFor((s) => s.phase === 'playing');
+  assert.strictEqual(xv.players.length, 3);
+  assert.ok(xv.players[1].bot && xv.players[2].bot && xv.players[1].level === 'easy');
+  assert.strictEqual((await post('/api/create', { name: 'X', bots: 4 })).body.players, undefined);
+  step('"play the computer" rooms start immediately with the chosen opponents');
+
+  sh.abort(); ss.abort(); sx.abort();
+
   console.log('online tests passed');
   process.exit(0);
 })().catch((e) => {

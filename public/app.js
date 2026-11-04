@@ -190,16 +190,19 @@
     const st = S.st;
     $('lcode').textContent = st.code;
     $('llink').value = location.origin + '/?room=' + st.code;
+    const isHost = st.you === st.host;
     $('lplayers').innerHTML = st.players
       .map((p, i) =>
-        '<li class="' + (p.connected ? '' : 'away') + '"><span class="dot"></span><span>' + esc(p.name) + '</span>' +
-        (i === st.you ? ' <em class="muted">(you)</em>' : '') + (i === st.host ? ' <span class="badge">host</span>' : '') + '</li>')
+        '<li class="' + (p.connected ? '' : 'away') + '"><span class="dot"></span><span>' + (p.bot ? '🤖 ' : '') + esc(p.name) + '</span>' +
+        (p.bot ? ' <span class="lvl">' + esc(p.level) + '</span>' : '') +
+        (i === st.you ? ' <em class="muted">(you)</em>' : '') + (i === st.host ? ' <span class="badge">host</span>' : '') +
+        (p.bot && isHost ? '<button class="rm" data-rm="' + i + '" aria-label="Remove computer">✕</button>' : '') + '</li>')
       .join('');
-    const isHost = st.you === st.host;
     $('startBtn').classList.toggle('hidden', !isHost);
     $('startBtn').disabled = st.players.length < 2;
+    $('botAdd').classList.toggle('hidden', !(isHost && st.players.length < 4));
     $('lwait').textContent = isHost
-      ? st.players.length < 2 ? 'Share the code or link. Waiting for at least one more player…' : 'Everyone in? Start when ready.'
+      ? st.players.length < 2 ? 'Share the code or link, or add a computer player.' : 'Everyone in? Start when ready.'
       : 'Waiting for ' + st.players[st.host].name + ' to start…';
     $('copyBtn').textContent = navigator.share ? 'Share' : 'Copy';
   }
@@ -232,7 +235,7 @@
     $('scoreboard').innerHTML = st.players
       .map((p, i) =>
         '<div class="chip' + (st.phase === 'playing' && i === st.turn ? ' turn' : '') + (p.connected ? '' : ' away') + '">' +
-        '<span class="dot"></span><span class="nm">' + esc(p.name) + (i === st.you ? ' (you)' : '') + '</span>' +
+        '<span class="dot"></span><span class="nm">' + (p.bot ? '🤖 ' : '') + esc(p.name) + (i === st.you ? ' (you)' : '') + '</span>' +
         '<span class="sc">' + p.score + '</span><small title="cards in hand">▯' + p.handCount + '</small></div>')
       .join('');
 
@@ -338,7 +341,7 @@
         text = cur.name + ' seems to be offline.';
         html = '<button class="btn" data-act="skip">Skip their turn</button>';
       } else {
-        text = 'Waiting for ' + cur.name + '…';
+        text = cur.bot ? cur.name + ' is thinking…' : 'Waiting for ' + cur.name + '…';
       }
     } else if (S.trade) {
       const n = S.tradeSel.size;
@@ -383,13 +386,16 @@
     if (st.phase !== 'finished') return ov.classList.add('hidden');
     const order = st.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.score - a.p.score);
     const tie = st.winners.length > 1;
-    const title = tie ? 'It’s a tie!' : esc(st.players[st.winners[0]].name) + ' wins!';
-    const canRestart = st.you === st.host || !st.players[st.host].connected;
+    const solo = st.players.length === 1;
+    const title = solo ? 'Game over: ' + st.players[0].score + ' points' : tie ? 'It’s a tie!' : (st.winners[0] === st.you ? 'You win!' : esc(st.players[st.winners[0]].name) + ' wins!');
+    const isHost = st.you === st.host;
+    const canRestart = isHost || !st.players[st.host].connected;
     $('overlayBody').innerHTML =
       '<h2>' + title + '</h2><ul class="rank">' +
-      order.map(({ p, i }) => '<li class="' + (st.winners.includes(i) ? 'win' : '') + '"><span>' + esc(p.name) + (i === st.you ? ' (you)' : '') + '</span><b>' + p.score + '</b></li>').join('') +
+      order.map(({ p, i }) => '<li class="' + (st.winners.includes(i) && !solo ? 'win' : '') + '"><span>' + (p.bot ? '🤖 ' : '') + esc(p.name) + (i === st.you ? ' (you)' : '') + '</span><b>' + p.score + '</b></li>').join('') +
       '</ul>' +
-      (canRestart ? '<button class="btn primary" data-act="restart">Back to lobby</button>' : '<p class="muted" style="text-align:center">Waiting for the host to start another game…</p>') +
+      (isHost ? '<button class="btn primary" data-act="rematch">Play again</button>' : '') +
+      (canRestart ? '<button class="btn' + (isHost ? '' : ' primary') + '" data-act="restart">Back to lobby</button>' : '<p class="muted" style="text-align:center">Waiting for the host to start another game…</p>') +
       '<button class="btn ghost" data-act="leave">Leave</button>';
     ov.classList.remove('hidden');
   }
@@ -416,6 +422,7 @@
         if (r.ok) { S.trade = false; S.tradeSel.clear(); }
       } else if (name === 'skip') r = await act('skip');
       else if (name === 'restart') r = await act('restart');
+      else if (name === 'rematch') r = await act('rematch');
       else if (name === 'leave') {
         await act('leave');
         return endSession('');
@@ -500,6 +507,18 @@
     if (code.length !== 4) return ($('herr').textContent = 'Enter the 4-letter room code.');
     enter(await api('/api/join', { code, name: playerName() }));
   }));
+  $('soloBtn').addEventListener('click', () => run(async () => {
+    enter(await api('/api/create', { name: playerName(), bots: Number($('botCount').value), level: $('botLevel').value }));
+  }));
+  $('botCount').addEventListener('change', () => { $('botLevel').classList.toggle('hidden', $('botCount').value === '0'); });
+  $('addBotBtn').addEventListener('click', () => run(async () => {
+    const r = await act('addBot', { level: $('lobbyLevel').value });
+    if (!r.ok) toast(r.error);
+  }));
+  $('lplayers').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-rm]');
+    if (b) run(async () => { const r = await act('removeBot', { index: Number(b.dataset.rm) }); if (!r.ok) toast(r.error); });
+  });
   $('code').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); });
   $('code').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('joinBtn').click(); });
   $('name').addEventListener('keydown', (e) => { if (e.key === 'Enter') ($('code').value ? $('joinBtn') : $('createBtn')).click(); });

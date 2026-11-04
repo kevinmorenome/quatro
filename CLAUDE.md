@@ -11,13 +11,16 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 ## Layout
 - `public/game-core.js` — the rules engine, shared by server and browser (UMD). Deck, line validation, scoring, wild cards, pass/trade, wild swap, game state functions. The client imports it only for live move preview and hints; the server is authoritative.
 - `server.js` — rooms, lobby, SSE state broadcast, actions. In-memory only.
+- `bot.js` — computer opponent (server-side). Enumerates every legal play (ordered card sequences along rows/cols, cheap pre-filters, then the real `validatePlay`) and picks by level: easy = any legal move, normal = one of the better 25%, hard = best score (holds wilds back). If nothing is playable it trades its non-wild cards.
 - `public/index.html`, `style.css`, `app.js` — vanilla JS client (home, lobby, game, rules dialog). Mobile first.
 - `test/core.test.js`, `test/online.test.js`.
 
 ## Protocol
 - `POST /api/create {name}` and `POST /api/join {code,name}` return `{ok, code, token}`.
 - `GET /api/events?code=&token=` is an SSE stream; each `state` event is a personalized view (you only see your own hand).
-- `POST /api/act {code, token, t, ...}` with `t` in: `start`, `play {placements:[{id,x,y}]}`, `pass {tradeIds}`, `recycle {x,y,cardId}`, `skip`, `restart`, `leave`.
+- `POST /api/act {code, token, t, ...}` with `t` in: `start`, `play {placements:[{id,x,y}]}`, `pass {tradeIds}`, `recycle {x,y,cardId}`, `skip`, `restart`, `rematch`, `addBot {level}`, `removeBot {index}`, `leave`.
+- `POST /api/create {name, bots, level}`: if `bots` is an integer 0–3 the room starts at once with that many computer players (0 = solo, one player, no opponents). Levels: `easy|normal|hard`.
+- Computer players are server-side players with `bot:true` (always 'connected'). They move 0.8–1.5 s after their turn starts, and only while a human is connected.
 - A player's token (saved in localStorage) lets them reconnect after a refresh or dropped connection.
 
 ## Rules as implemented
@@ -32,8 +35,9 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 - Verified: engine tests (rule cases and bot-played full games for 2/3/4 players with card-conservation and board-consistency checks), online test (lobby, privacy of hands, turn enforcement, play, trade, disconnect/reconnect, full game, restart).
 - UI driven with Playwright (two 390px phone clients): home, lobby, tap-to-place, hints, Play button score, trade/pass, reload mid-game (reconnects), full game to the game-over overlay. Fixed: reloading the page used to wipe the saved session (SSE error on unload was treated as 'room gone'); now `/api/state-check` confirms before forgetting it.
 - Board zoom: pinch (touch), ctrl+wheel (trackpad), +/− buttons and a 'fit whole board' button; zoom is a CSS var `--z` on `#board`. Tested with a CDP two-finger pinch on a 390px viewport.
+- Computer players: bot-vs-bot games (2/3/4 seats, all levels) checked move-by-move against the engine; online tests cover add/remove, auto turns, solo and vs-computer rooms; browser test covers home options, lobby add/remove, a game vs 2 computers, solo.
 - Still NOT exercised in a browser: wild-card swap, desktop/tablet widths, 3-4 player layout (scoreboard wrapping).
 
 ## Ideas / next steps
 - Test and polish the UI (animations, sounds, nicer card art), then deploy (see README).
-- Optional: bots to fill empty seats, persistence across server restarts, a spectator mode, chat/emotes.
+- Optional: smarter bot (wild swaps, look-ahead), persistence across server restarts, a spectator mode, chat/emotes.

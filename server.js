@@ -10,6 +10,7 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const core = require('./public/game-core.js');
+const bot = require('./bot.js');
 
 const PUBLIC = path.join(__dirname, 'public');
 const MIME = {
@@ -40,7 +41,18 @@ function makeCode() {
 
 const cleanName = (n, fallback) => String(n || '').replace(/\s+/g, ' ').trim().slice(0, 16) || fallback;
 const newPlayer = (name) => ({ name, token: crypto.randomBytes(16).toString('hex'), streams: new Set(), dropTimer: null });
-const isConnected = (p) => p.streams.size > 0;
+const isConnected = (p) => !!p.bot || p.streams.size > 0; // computer players are always "online"
+const humans = (room) => room.players.filter((p) => !p.bot);
+const BOT_NAMES = ['Robo', 'Pixel', 'Dot', 'Beep'];
+const cleanLevel = (l) => (bot.LEVELS.includes(l) ? l : 'normal');
+
+function newBot(room, level) {
+  const free = BOT_NAMES.filter((n) => !room.players.some((p) => p.name === n));
+  const p = newPlayer(free[0] || 'Computer');
+  p.bot = true;
+  p.level = cleanLevel(level);
+  return p;
+}
 
 function uniqueName(room, name) {
   let n = name;
@@ -61,6 +73,8 @@ function viewFor(room, idx) {
     players: room.players.map((p, i) => ({
       name: p.name,
       connected: isConnected(p),
+      bot: !!p.bot,
+      level: p.bot ? p.level : undefined,
       score: g ? g.scores[i] : 0,
       handCount: g ? g.hands[i].length : 0,
     })),
@@ -96,12 +110,45 @@ function removeFromLobby(room, player) {
   for (const res of player.streams) res.end();
   player.streams.clear();
   room.players = room.players.filter((p) => p !== player);
-  if (room.players.length === 0) {
+  if (humans(room).length === 0) {
+    clearTimeout(room.botTimer);
     rooms.delete(room.code);
     return;
   }
-  if (room.host === player) room.host = room.players[0];
+  if (room.host === player) room.host = humans(room)[0];
   broadcast(room);
+}
+
+// ---------- Computer players ----------
+
+function scheduleBot(room) {
+  clearTimeout(room.botTimer);
+  const g = room.game;
+  if (!g || g.phase !== 'playing') return;
+  const cur = room.players[g.turn];
+  if (!cur || !cur.bot) return;
+  if (!humans(room).some(isConnected)) return; // nobody watching: don't burn CPU
+  room.botTimer = setTimeout(() => botTurn(room), 800 + Math.random() * 700);
+  if (room.botTimer.unref) room.botTimer.unref();
+}
+
+function botTurn(room) {
+  const g = room.game;
+  if (!g || g.phase !== 'playing' || rooms.get(room.code) !== room) return;
+  const idx = g.turn;
+  const me = room.players[idx];
+  if (!me || !me.bot) return;
+  let move;
+  try {
+    move = bot.chooseMove(g, idx, me.level);
+  } catch (e) {
+    move = { t: 'pass', tradeIds: [] };
+  }
+  let r = move.t === 'play' ? core.applyPlay(g, idx, move.placements) : core.applyPass(g, idx, move.tradeIds);
+  if (!r.ok) r = core.applyPass(g, idx, []); // safety net: never get stuck
+  room.phase = g.phase;
+  broadcast(room);
+  scheduleBot(room);
 }
 
 function onDisconnect(room, player) {
@@ -197,6 +244,7 @@ function handleEvents(req, res, url) {
   player.streams.add(res);
   room.lastActive = Date.now();
   broadcast(room); // everyone sees the connection status change, and this stream gets its first state
+  scheduleBot(room); // a human came back: let the computer keep playing
   req.on('close', () => {
     player.streams.delete(res);
     if (!player.streams.size && rooms.get(room.code) === room && room.players.includes(player)) onDisconnect(room, player);
@@ -208,7 +256,15 @@ function handleApi(pathname, body, res) {
     if (rooms.size >= MAX_ROOMS) return json(res, 503, { ok: false, error: 'Server is busy, try again later.' });
     const player = newPlayer(cleanName(body.name, 'Player 1'));
     const room = { code: makeCode(), players: [player], host: player, phase: 'lobby', game: null, lastActive: Date.now() };
+    // Play against the computer (or alone): `bots` = number of computer opponents (0 = solo), game starts at once.
+    if (Number.isInteger(body.bots) && body.bots >= 0 && body.bots < MAX_PLAYERS) {
+      for (let i = 0; i < body.bots; i++) room.players.push(newBot(room, body.level));
+      room.solo = body.bots === 0;
+      room.game = core.createGame(room.players.length);
+      room.phase = 'playing';
+    }
     rooms.set(room.code, room);
+    scheduleBot(room);
     return json(res, 200, { ok: true, code: room.code, token: player.token });
   }
 
@@ -235,6 +291,7 @@ function handleApi(pathname, body, res) {
       if (r && r.ok === false) return fail(r.error);
       if (room.game) room.phase = room.game.phase;
       broadcast(room);
+      scheduleBot(room);
       return json(res, 200, { ok: true });
     };
 
@@ -246,6 +303,29 @@ function handleApi(pathname, body, res) {
         room.game = core.createGame(room.players.length);
         room.phase = 'playing';
         return done();
+      case 'addBot':
+        if (room.phase !== 'lobby') return fail('The game already started.');
+        if (room.host !== player) return fail('Only the host can add a computer player.');
+        if (room.players.length >= MAX_PLAYERS) return fail('The room is full.');
+        room.players.push(newBot(room, body.level));
+        return done();
+      case 'removeBot': {
+        if (room.phase !== 'lobby') return fail('The game already started.');
+        if (room.host !== player) return fail('Only the host can remove a computer player.');
+        const b = room.players[body.index];
+        if (!b || !b.bot) return fail('That is not a computer player.');
+        room.players = room.players.filter((p) => p !== b);
+        return done();
+      }
+      case 'rematch': {
+        if (room.phase !== 'finished') return fail('The game is not over.');
+        if (room.host !== player) return fail('Only the host can start another game.');
+        room.players = room.players.filter(isConnected);
+        if (room.players.length < (room.solo ? 1 : 2)) return fail('Not enough players for another game.');
+        room.game = core.createGame(room.players.length);
+        room.phase = 'playing';
+        return done();
+      }
       case 'play':
         if (!g) return fail('The game has not started.');
         return done(core.applyPlay(g, idx, body.placements));
@@ -312,10 +392,11 @@ const server = http.createServer(async (req, res) => {
 setInterval(() => {
   const now = Date.now();
   for (const [code, room] of rooms) {
-    const anyConnected = room.players.some(isConnected);
+    const anyConnected = humans(room).some(isConnected);
     for (const p of room.players) for (const s of p.streams) s.write(': ping\n\n');
     if ((!anyConnected && now - room.lastActive > EMPTY_ROOM_MS) || now - room.lastActive > IDLE_ROOM_MS) {
       for (const p of room.players) for (const s of p.streams) s.end();
+      clearTimeout(room.botTimer);
       rooms.delete(code);
     }
   }
