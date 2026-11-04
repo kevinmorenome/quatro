@@ -19,8 +19,8 @@
   };
 
   // ---------- Card drawing ----------
-  const FILL = { red: '#d93a2f', blue: '#2563d8', green: '#1f9d4c', yellow: '#f0b400' };
-  const DARK = { red: '#8f1f17', blue: '#133c8f', green: '#0e6130', yellow: '#8a6500' };
+  const FILL = { red: '#e8445a', blue: '#2a5aa8', green: '#5fb946', yellow: '#f2b705' };
+  const DARK = { red: '#a3213a', blue: '#17356b', green: '#2e7d27', yellow: '#a87700' };
 
   function shapeEl(shape) {
     switch (shape) {
@@ -32,12 +32,12 @@
   }
 
   const WILD_SVG =
-    '<svg viewBox="0 0 60 84" role="img" aria-label="wild card"><rect x="1.5" y="1.5" width="57" height="81" rx="7" fill="#fffaf0" stroke="#cfc6b0" stroke-width="1.5"/>' +
+    '<svg viewBox="0 0 60 84" role="img" aria-label="wild card"><rect x="1.5" y="1.5" width="57" height="81" rx="7" fill="#fffdf8" stroke="#d9d3c4" stroke-width="1.5"/>' +
     '<g stroke-width="1.5" stroke-linejoin="round">' +
-    '<circle cx="20" cy="24" r="8" fill="#d93a2f" stroke="#8f1f17"/>' +
-    '<rect x="32" y="16" width="16" height="16" rx="2" fill="#2563d8" stroke="#133c8f"/>' +
-    '<polygon points="20,40 28,56 12,56" fill="#1f9d4c" stroke="#0e6130"/>' +
-    '<path d="M37 40H43V45H48V51H43V56H37V51H32V45H37Z" fill="#f0b400" stroke="#8a6500"/></g>' +
+    '<circle cx="20" cy="24" r="8" fill="#e8445a" stroke="#a3213a"/>' +
+    '<rect x="32" y="16" width="16" height="16" rx="2" fill="#2a5aa8" stroke="#17356b"/>' +
+    '<polygon points="20,40 28,56 12,56" fill="#5fb946" stroke="#2e7d27"/>' +
+    '<path d="M37 40H43V45H48V51H43V56H37V51H32V45H37Z" fill="#f2b705" stroke="#a87700"/></g>' +
     '<text x="30" y="75" text-anchor="middle" font-size="13" font-weight="800" fill="#444" font-family="system-ui,sans-serif" letter-spacing="1">WILD</text></svg>';
 
   function cardSVG(card) {
@@ -46,7 +46,7 @@
     const d = DARK[card.color];
     return (
       '<svg viewBox="0 0 60 84" role="img" aria-label="' + card.color + ' ' + card.shape + ' ' + card.num + '">' +
-      '<rect x="1.5" y="1.5" width="57" height="81" rx="7" fill="#fffaf0" stroke="#cfc6b0" stroke-width="1.5"/>' +
+      '<rect x="1.5" y="1.5" width="57" height="81" rx="7" fill="#fffdf8" stroke="#d9d3c4" stroke-width="1.5"/>' +
       '<g fill="' + f + '" stroke="' + d + '" stroke-width="2" stroke-linejoin="round">' + shapeEl(card.shape) + '</g>' +
       '<text x="30" y="75" text-anchor="middle" font-size="22" font-weight="800" fill="' + d + '" font-family="system-ui,sans-serif">' + card.num + '</text></svg>'
     );

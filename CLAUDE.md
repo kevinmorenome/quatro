@@ -13,7 +13,11 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 - `server.js` — rooms, lobby, SSE state broadcast, actions. In-memory only.
 - `bot.js` — computer opponent (server-side). Enumerates every legal play (ordered card sequences along rows/cols, cheap pre-filters, then the real `validatePlay`) and picks by level: easy = any legal move, normal = one of the better 25%, hard = best score (holds wilds back). If nothing is playable it trades its non-wild cards.
 - `public/index.html`, `style.css`, `app.js` — vanilla JS client (home, lobby, game, rules dialog). Mobile first.
-- `test/core.test.js`, `test/online.test.js`.
+- `public/logo.svg` (wordmark), `icon.svg`/`favicon.svg` (app tile), `icon-192/512.png`, `apple-touch-icon.png` (rendered from icon.svg), `manifest.webmanifest` (installable PWA).
+- `test/core.test.js`, `test/bot.test.js`, `test/online.test.js`.
+
+## Look & feel
+Bauhaus: warm paper background (`--paper #efece6`), ink-navy text, flat primary colors (navy `#20476f`, red `#e8445a`, yellow `#f5c84f`, green `#6dbf50`), pill/rounded shapes, bold rounded sans. Card shape colors live in `FILL`/`DARK` in `app.js`. The F-o-U-R logo is the user's own design, redrawn as vector in `logo.svg`; if you change it, re-render the PNG icons from `icon.svg`.
 
 ## Protocol
 - `POST /api/create {name}` and `POST /api/join {code,name}` return `{ok, code, token}`.

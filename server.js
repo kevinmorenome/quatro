@@ -21,6 +21,7 @@ const MIME = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
 };
 const MAX_PLAYERS = 4;
 const MAX_ROOMS = 500;
