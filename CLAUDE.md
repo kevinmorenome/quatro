@@ -30,7 +30,8 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 
 ## Status
 - Verified: engine tests (rule cases and bot-played full games for 2/3/4 players with card-conservation and board-consistency checks), online test (lobby, privacy of hands, turn enforcement, play, trade, disconnect/reconnect, full game, restart).
-- NOT yet verified: the browser UI has only been syntax-checked, never run in a real browser. First job: run it with two browser windows (or Playwright) and fix whatever is off, especially layout on phone widths, tap-to-place flow, hints, wild swap, trade mode, reconnect after refresh, and the game-over overlay.
+- UI driven with Playwright (two 390px phone clients): home, lobby, tap-to-place, hints, Play button score, trade/pass, reload mid-game (reconnects), full game to the game-over overlay. Fixed: reloading the page used to wipe the saved session (SSE error on unload was treated as 'room gone'); now `/api/state-check` confirms before forgetting it.
+- Still NOT exercised in a browser: wild-card swap, desktop/tablet widths, 3-4 player layout (scoreboard wrapping).
 
 ## Ideas / next steps
 - Test and polish the UI (animations, sounds, nicer card art), then deploy (see README).

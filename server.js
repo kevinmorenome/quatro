@@ -291,6 +291,10 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200);
       return res.end('ok');
     }
+    if (req.method === 'GET' && url.pathname === '/api/state-check') {
+      const { player } = findPlayer(url.searchParams.get('code'), url.searchParams.get('token'));
+      return json(res, player ? 200 : 404, { ok: !!player });
+    }
     if (req.method === 'GET' && url.pathname === '/api/events') return handleEvents(req, res, url);
     if (req.method === 'POST' && url.pathname.startsWith('/api/')) {
       const body = await readJson(req);

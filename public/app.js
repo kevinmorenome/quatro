@@ -119,9 +119,20 @@
       banner(false);
       onState(JSON.parse(e.data));
     });
-    es.onerror = () => {
-      if (es.readyState === 2) endSession('That game is no longer available.');
-      else banner(true);
+    es.onerror = async () => {
+      if (S.unloading || S.es !== es) return; // page is closing/reloading, or a newer stream replaced this one
+      if (es.readyState !== 2) return banner(true);
+      // The browser gave up on the stream. Only forget the session if the server says it's gone;
+      // otherwise (server restarting, flaky network) keep it and retry.
+      banner(true);
+      let gone = false;
+      try {
+        const r = await fetch('/api/state-check?code=' + encodeURIComponent(S.session.code) + '&token=' + encodeURIComponent(S.session.token));
+        gone = r.status === 404;
+      } catch (e) { /* offline: keep session */ }
+      if (S.es !== es) return;
+      if (gone) endSession('That game is no longer available.');
+      else setTimeout(() => { if (S.session && S.es === es) connect(); }, 2000);
     };
   }
 
@@ -517,6 +528,9 @@
       toast('Invite link copied');
     }
   });
+
+  window.addEventListener('pagehide', () => { S.unloading = true; });
+  window.addEventListener('beforeunload', () => { S.unloading = true; });
 
   // ---------- Boot ----------
   try {
