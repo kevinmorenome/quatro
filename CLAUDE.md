@@ -31,6 +31,7 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 ## Status
 - Verified: engine tests (rule cases and bot-played full games for 2/3/4 players with card-conservation and board-consistency checks), online test (lobby, privacy of hands, turn enforcement, play, trade, disconnect/reconnect, full game, restart).
 - UI driven with Playwright (two 390px phone clients): home, lobby, tap-to-place, hints, Play button score, trade/pass, reload mid-game (reconnects), full game to the game-over overlay. Fixed: reloading the page used to wipe the saved session (SSE error on unload was treated as 'room gone'); now `/api/state-check` confirms before forgetting it.
+- Board zoom: pinch (touch), ctrl+wheel (trackpad), +/− buttons and a 'fit whole board' button; zoom is a CSS var `--z` on `#board`. Tested with a CDP two-finger pinch on a 390px viewport.
 - Still NOT exercised in a browser: wild-card swap, desktop/tablet widths, 3-4 player layout (scoreboard wrapping).
 
 ## Ideas / next steps

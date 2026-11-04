@@ -299,8 +299,9 @@
       }
     }
     const board = $('board');
-    board.style.gridTemplateColumns = 'repeat(' + (maxX - minX + 1) + ', var(--cw))';
-    board.style.gridTemplateRows = 'repeat(' + (maxY - minY + 1) + ', var(--ch))';
+    S.dims = { cols: maxX - minX + 1, rows: maxY - minY + 1 };
+    board.style.gridTemplateColumns = 'repeat(' + S.dims.cols + ', calc(var(--cw) * var(--z)))';
+    board.style.gridTemplateRows = 'repeat(' + S.dims.rows + ', calc(var(--ch) * var(--z)))';
     board.innerHTML = html;
   }
 
@@ -528,6 +529,66 @@
       toast('Invite link copied');
     }
   });
+
+  // ---------- Board zoom (pinch, +/- buttons, fit) ----------
+  const ZOOM_MIN = 0.3, ZOOM_MAX = 2;
+  S.zoom = 1;
+  S.dims = { cols: 1, rows: 1 };
+
+  // Set the zoom, keeping the board point under (cx, cy) (viewport coords inside boardWrap) fixed.
+  function setZoom(z, cx, cy) {
+    const wrap = $('boardWrap');
+    const old = S.zoom;
+    z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+    if (cx === undefined) { cx = wrap.clientWidth / 2; cy = wrap.clientHeight / 2; }
+    const px = (wrap.scrollLeft + cx) / old;
+    const py = (wrap.scrollTop + cy) / old;
+    S.zoom = z;
+    $('board').style.setProperty('--z', z);
+    wrap.scrollLeft = px * z - cx;
+    wrap.scrollTop = py * z - cy;
+  }
+
+  function fitBoard() {
+    const wrap = $('boardWrap');
+    const root = getComputedStyle(document.documentElement);
+    const cw = parseFloat(root.getPropertyValue('--cw'));
+    const ch = parseFloat(root.getPropertyValue('--ch'));
+    const gap = 4, pad = 14; // gaps and padding don't scale with zoom
+    const z = Math.min((wrap.clientWidth - pad * 2 - (S.dims.cols - 1) * gap) / (S.dims.cols * cw),
+                       (wrap.clientHeight - pad * 2 - (S.dims.rows - 1) * gap) / (S.dims.rows * ch));
+    setZoom(Math.min(1, z));
+    wrap.scrollLeft = 0; wrap.scrollTop = 0;
+  }
+
+  $('zoomIn').addEventListener('click', () => setZoom(S.zoom * 1.25));
+  $('zoomOut').addEventListener('click', () => setZoom(S.zoom / 1.25));
+  $('zoomFit').addEventListener('click', fitBoard);
+
+  (() => {
+    const wrap = $('boardWrap');
+    let start = null;
+    const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    wrap.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) start = { d: dist(e.touches), z: S.zoom };
+    }, { passive: true });
+    wrap.addEventListener('touchmove', (e) => {
+      if (e.touches.length !== 2 || !start) return;
+      e.preventDefault();
+      const r = wrap.getBoundingClientRect();
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+      setZoom(start.z * (dist(e.touches) / start.d), cx, cy);
+    }, { passive: false });
+    wrap.addEventListener('touchend', (e) => { if (e.touches.length < 2) start = null; }, { passive: true });
+    // trackpad pinch / ctrl+wheel on desktop
+    wrap.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      const r = wrap.getBoundingClientRect();
+      setZoom(S.zoom * Math.exp(-e.deltaY * 0.01), e.clientX - r.left, e.clientY - r.top);
+    }, { passive: false });
+  })();
 
   window.addEventListener('pagehide', () => { S.unloading = true; });
   window.addEventListener('beforeunload', () => { S.unloading = true; });
