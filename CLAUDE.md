@@ -12,6 +12,8 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 - `public/game-core.js` — the rules engine, shared by server and browser (UMD). Deck, line validation, scoring, wild cards, pass/trade, wild swap, game state functions. The client imports it only for live move preview and hints; the server is authoritative.
 - `server.js` — rooms, lobby, SSE state broadcast, actions. In-memory only.
 - `bot.js` — computer opponent (server-side). Enumerates every legal play (ordered card sequences along rows/cols, cheap pre-filters, then the real `validatePlay`) and picks by level: easy = any legal move, normal = one of the better 25%, hard = best score (holds wilds back). If nothing is playable it trades its non-wild cards.
+- `public/cards.js` — card drawing (`window.FourCards`: cardSVG, shapeSVG, colors), shared by `app.js` and `tutorial.js`.
+- `public/tutorial.js` — the 'how to play' wizard (`window.FourTutorial.open({noPractice, onPractice, onFullRules})`): 9 illustrated steps, a quiz, ends with 'Practice game' (solo vs an easy computer; hidden when opened from inside a room). Auto-opens once on a first visit (`four-tutorial-seen`), opened by the home 'New here?' button and the '?' button. The older plain rules dialog is still reachable via 'Read the full rules'.
 - `public/index.html`, `style.css`, `app.js` — vanilla JS client (home, lobby, game, rules dialog). Mobile first.
 - `public/logo.svg` (wordmark), `icon.svg`/`favicon.svg` (app tile), `icon-192/512.png`, `apple-touch-icon.png` (rendered from icon.svg), `manifest.webmanifest` (installable PWA).
 - `test/core.test.js`, `test/bot.test.js`, `test/online.test.js`.

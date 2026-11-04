@@ -240,3 +240,67 @@ select option { background: var(--surface); color: var(--ink); }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .logo { background: #efece6; border-radius: 26px; padding: 12px 14px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4); }
 }
+
+/* ---------- How-to-play wizard ---------- */
+.btn.small { padding: 8px 14px; font-size: 14px; }
+#tutorial { width: min(440px, 94vw); max-height: 92dvh; padding: 0; display: none; flex-direction: column; overflow: hidden; }
+#tutorial[open] { display: flex; }
+#tutorial .thead { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px 0; color: var(--muted); font-size: 13px; font-weight: 700; }
+#tutorial .tart {
+  margin: 10px 18px 0; padding: 16px 10px; border-radius: 18px; background: var(--paper2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 150px;
+}
+#tutorial h2 { margin: 14px 18px 4px; color: var(--navy); font-size: 22px; }
+#tutorial .tbody { padding: 0 18px; overflow-y: auto; flex: 1; min-height: 0; }
+#tutorial .tbody p { margin-bottom: 8px; font-size: 15px; }
+.tnote { color: var(--muted); font-size: 14px !important; }
+.tsteps { margin: 0 0 8px; padding-left: 20px; font-size: 15px; display: flex; flex-direction: column; gap: 6px; }
+.tfoot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 18px 16px; border-top: 1.5px solid var(--line); margin-top: 8px; }
+.tbtns { display: flex; gap: 8px; }
+.tdots { display: flex; gap: 4px; flex-wrap: nowrap; min-width: 0; }
+.tdotbtn { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--line); cursor: pointer; }
+.tdotbtn.on { background: var(--red); transform: scale(1.25); }
+
+.trow, .thand { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.tc { width: 52px; height: 73px; flex: none; border-radius: 8px; }
+.tc svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1px 1.5px rgba(27, 43, 64, 0.3)); }
+.tc.sel { outline: 3px solid var(--red); transform: translateY(-6px); }
+.tc.trade { outline: 3px solid var(--navy); transform: translateY(-6px); }
+.teq { font-size: 14px; color: var(--ink); text-align: center; font-weight: 600; }
+.teq b { color: var(--navy); }
+
+.tprops { display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 0 8px; }
+.tprops > div { display: flex; align-items: center; gap: 10px; }
+.tl { width: 78px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.tdot { width: 28px; height: 28px; border-radius: 50%; display: inline-block; }
+.tprops svg { margin-right: 2px; }
+.tnum { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--line); font-size: 15px; }
+
+.tcheck { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 260px; }
+.tcheck > div { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; }
+.tchip { padding: 3px 12px; border-radius: 999px; font-size: 13px; background: var(--surface); border: 1.5px solid var(--line); }
+.tchip.ok { background: var(--green); border-color: var(--green); color: #12330b; }
+.tchip.ok::after { content: " ✓"; }
+
+.tquiz { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.topt {
+  display: flex; align-items: center; gap: 10px; justify-content: center; padding: 8px; border-radius: 14px;
+  border: 2px solid var(--line); background: var(--surface); cursor: pointer; font: inherit; color: var(--ink);
+}
+.topt .tc { width: 40px; height: 56px; }
+.topt .tq { font-weight: 800; width: 18px; color: var(--muted); }
+.topt.right { border-color: var(--green-d); background: var(--ok-bg); }
+.topt.wrong { border-color: var(--red); }
+.tfeed { min-height: 3.6em; color: var(--muted); font-size: 14px !important; }
+.tfeed.good { color: var(--green-d); font-weight: 700; }
+.tfeed.bad { color: var(--red-d); font-weight: 600; }
+
+.tboard { display: flex; gap: 4px; justify-content: center; }
+.tcell { width: 52px; height: 73px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.tcell.slot.ok { border: 2px solid var(--green-d); background: var(--ok-bg); color: var(--green-d); font-size: 22px; }
+.tscore { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.tscore > div { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.tscore .tc { width: 44px; height: 62px; }
+
+.tlabel { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; text-align: center; }
+#tutorial .tart .tlabel + .tboard, #tutorial .tart .tlabel + .thand { margin-top: -6px; }
