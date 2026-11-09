@@ -2,7 +2,14 @@ services:
   - type: web
     name: iota
     runtime: node
+    # "free" sleeps after ~15 min without visits and cold-starts in ~1 min: fine for testing, bad for ads
+    # (visitors would see a dead page and running games are lost). Use "starter" (paid, always on) before advertising.
     plan: free
     buildCommand: ""
     startCommand: node server.js
     healthCheckPath: /healthz
+    envVars:
+      # Number of proxies in front of the app, so per-visitor limits see the real visitor address.
+      # 1 = Render only. 2 = Cloudflare in front of Render. Check with LOG_IPS=1 after deploying (see GOING_LIVE.md).
+      - key: TRUST_PROXY
+        value: "1"

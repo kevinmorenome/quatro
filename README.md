@@ -21,6 +21,9 @@ Any host that runs a Node web service works, because the whole game is one `serv
 
 Notes: rooms live in server memory, so a restart (or a free plan going to sleep) ends running games. The server must allow long-lived connections (Server-Sent Events); Render and Railway do.
 
+## Going live
+See [GOING_LIVE.md](GOING_LIVE.md): what the server defends against, what to put in front of it (Cloudflare), proxy setting (`TRUST_PROXY`), ad checklist and capacity numbers.
+
 ## Tests
 ```
 npm test

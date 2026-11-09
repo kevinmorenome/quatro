@@ -1,5 +1,6 @@
 'use strict';
 const assert = require('node:assert');
+process.env.FOUR_DISABLE_LIMITS = '1'; // this test makes many rooms from one address
 const core = require('../public/game-core.js');
 const { start } = require('../server.js');
 

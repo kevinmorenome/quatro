@@ -12,11 +12,14 @@ Rulebook used: https://cdn.1j1ju.com/medias/0e/e4/7f-iota-rulebook.pdf
 - `public/game-core.js` — the rules engine, shared by server and browser (UMD). Deck, line validation, scoring, wild cards, pass/trade, wild swap, game state functions. The client imports it only for live move preview and hints; the server is authoritative.
 - `server.js` — rooms, lobby, SSE state broadcast, actions. In-memory only.
 - `bot.js` — computer opponent (server-side). Enumerates every legal play (ordered card sequences along rows/cols, cheap pre-filters, then the real `validatePlay`) and picks by level: easy = any legal move, normal = one of the better 25%, hard = best score (holds wilds back). If nothing is playable it trades its non-wild cards.
+- `guard.js` — abuse protection: client IP (`TRUST_PROXY`), fixed-window `RateLimiter`, name sanitising, security headers/CSP (inline theme script allowed by hash computed from index.html at startup; ad hosts via `CSP_*` env). Limits are the `LIM` table in `server.js`; `FOUR_DISABLE_LIMITS=1` turns them off (used by `online.test.js`).
+- `botpool.js` + `bot-worker.js` — bot thinking runs in one worker thread (queue, 5 s timeout -> pass) so a slow move never blocks other rooms. `botTurn` in `server.js` is async and re-checks the room/turn after the move arrives.
+- `GOING_LIVE.md` — deployment/ads/security checklist and measured capacity (`node test/load.js`).
 - `public/cards.js` — card drawing (`window.FourCards`: cardSVG, shapeSVG, colors), shared by `app.js` and `tutorial.js`.
 - `public/tutorial.js` — the 'how to play' wizard (`window.FourTutorial.open({noPractice, onPractice, onFullRules})`): 9 illustrated steps, a quiz, ends with 'Practice game' (solo vs an easy computer; hidden when opened from inside a room). Auto-opens once on a first visit (`four-tutorial-seen`), opened by the home 'New here?' button and the '?' button. The older plain rules dialog is still reachable via 'Read the full rules'.
 - `public/index.html`, `style.css`, `app.js` — vanilla JS client (home, lobby, game, rules dialog). Mobile first.
 - `public/logo.svg` (wordmark), `icon.svg`/`favicon.svg` (app tile), `icon-192/512.png`, `apple-touch-icon.png` (rendered from icon.svg), `manifest.webmanifest` (installable PWA).
-- `test/core.test.js`, `test/bot.test.js`, `test/online.test.js`.
+- `test/core.test.js`, `test/bot.test.js`, `test/online.test.js`, `test/security.test.js` (limits ON; fake visitors via `X-Forwarded-For`), `test/load.js` (manual load test).
 
 ## Look & feel
 Bauhaus: warm paper background (`--paper #efece6`), ink-navy text, flat primary colors (navy `#20476f`, red `#e8445a`, yellow `#f5c84f`, green `#6dbf50`), pill/rounded shapes, bold rounded sans. Card shape colors live in `FILL`/`DARK` in `app.js`. Dark mode: all colors are CSS variables on `:root`; the dark set applies under `prefers-color-scheme: dark` unless `html[data-theme="light"]`, or always with `data-theme="dark"`. A ☾/☀ button (`.themeBtn`, saved as `four-theme` in localStorage, applied by an inline script in `<head>` before first paint) overrides the system setting. In dark mode the logo sits on a paper tile so the navy F stays visible; cards keep their cream faces. The F-o-U-R logo is the user's own design, redrawn as vector in `logo.svg`; if you change it, re-render the PNG icons from `icon.svg`.
@@ -27,6 +30,7 @@ Bauhaus: warm paper background (`--paper #efece6`), ink-navy text, flat primary 
 - `POST /api/act {code, token, t, ...}` with `t` in: `start`, `play {placements:[{id,x,y}]}`, `pass {tradeIds}`, `recycle {x,y,cardId}`, `skip`, `restart`, `rematch`, `addBot {level}`, `removeBot {index}`, `leave`.
 - `POST /api/create {name, bots, level}`: if `bots` is an integer 0–3 the room starts at once with that many computer players (0 = solo, one player, no opponents). Levels: `easy|normal|hard`.
 - Computer players are server-side players with `bot:true` (always 'connected'). They move 0.8–1.5 s after their turn starts, and only while a human is connected.
+- API limits: POST must be `application/json` and same-origin; 429 = rate limited, 503 = server/bot capacity. Static files are served from an in-memory cache (gzip/br, ETag).
 - A player's token (saved in localStorage) lets them reconnect after a refresh or dropped connection.
 
 ## Rules as implemented
