@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: iota
+    name: four
     runtime: node
     plan: free
     buildCommand: ""
